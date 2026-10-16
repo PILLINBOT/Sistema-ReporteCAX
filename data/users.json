@@ -1,0 +1,50 @@
+[
+  {
+    "username": "admin",
+    "password_hash": "050e216a737f49efea12bf0e9afcde5c5e4fa985794ef7b5f9b4d798ef0cdd87",
+    "id": 1,
+    "role": "admin",
+    "name": "",
+    "email": "",
+    "eco_points": 15,
+    "user_score": 90,
+    "active_badges": [
+      "primer_reporte",
+      "reportero_activo",
+      "voluntario"
+    ]
+  },
+  {
+    "id": 2,
+    "username": "operador",
+    "password_hash": "f68f00800d76565133f4c9ebec8a23bf9cd3602512f3e3c42d2a95925d98866d",
+    "role": "operador",
+    "name": "",
+    "email": "",
+    "eco_points": 0,
+    "user_score": 0,
+    "active_badges": []
+  },
+  {
+    "id": 3,
+    "username": "ciudadano",
+    "password_hash": "ae359b0cf8596b977e490f8892620f7b287537f4a7055f0e1833974848281a1c",
+    "role": "ciudadano",
+    "name": "",
+    "email": "",
+    "eco_points": 0,
+    "user_score": 0,
+    "active_badges": []
+  },
+  {
+    "id": 4,
+    "username": "invitado",
+    "password_hash": "60370051774a406b4f3fb5f890b467fcf1d904ad9aa50541af6e67bfdc3b454b",
+    "role": "invitado",
+    "name": "",
+    "email": "",
+    "eco_points": 0,
+    "user_score": 0,
+    "active_badges": []
+  }
+]

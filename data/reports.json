@@ -1,0 +1,110 @@
+[
+  {
+    "title": "bache grande",
+    "description": "bache grande en la pista",
+    "zone": "Centro",
+    "lat": -6.1638,
+    "lng": -77.5008,
+    "severity": "intermedio",
+    "category": "bache",
+    "created_at": "2026-10-14T16:41:06.233267+00:00",
+    "id": 1,
+    "user": "admin"
+  },
+  {
+    "title": "pista rota",
+    "description": "pista rota camino a el quinde",
+    "zone": "Centro",
+    "lat": -7.149162,
+    "lng": -78.507968,
+    "severity": "critico",
+    "category": "otro",
+    "created_at": "2026-10-14T16:49:50.693970+00:00",
+    "id": 2,
+    "user": "admin"
+  },
+  {
+    "title": "calle rota",
+    "description": "calle rota atras de el quinde",
+    "zone": "Centro",
+    "lat": -7.147565,
+    "lng": -78.512104,
+    "severity": "bajo",
+    "category": "otro",
+    "created_at": "2026-10-14T16:51:26.759713+00:00",
+    "id": 3,
+    "user": "admin"
+  },
+  {
+    "title": "calle rota",
+    "description": "calle rota saliendo de el quinde",
+    "zone": "Centro",
+    "lat": -7.150013,
+    "lng": -78.509148,
+    "severity": "critico",
+    "category": "otro",
+    "created_at": "2026-10-14T16:52:15.640929+00:00",
+    "id": 4,
+    "user": "admin"
+  },
+  {
+    "title": "Bache",
+    "description": "test",
+    "zone": "Centro",
+    "lat": -7.16,
+    "lng": -78.5,
+    "severity": "critico",
+    "category": "bache",
+    "created_at": "2026-10-14T16:57:33.891677+00:00",
+    "id": 5,
+    "user": "admin"
+  },
+  {
+    "title": "Luz",
+    "description": "test",
+    "zone": "Centro",
+    "lat": -7.16,
+    "lng": -78.5,
+    "severity": "critico",
+    "category": "alumbrado",
+    "created_at": "2026-10-14T16:57:33.894028+00:00",
+    "id": 6,
+    "user": "admin"
+  },
+  {
+    "title": "Basura",
+    "description": "test",
+    "zone": "Norte",
+    "lat": -7.16,
+    "lng": -78.5,
+    "severity": "bajo",
+    "category": "basura",
+    "created_at": "2026-10-14T16:57:33.909686+00:00",
+    "id": 7,
+    "user": "admin"
+  },
+  {
+    "title": "Fuga",
+    "description": "test",
+    "zone": "Sur",
+    "lat": -7.16,
+    "lng": -78.5,
+    "severity": "intermedio",
+    "category": "fuga",
+    "created_at": "2026-10-14T16:57:33.923912+00:00",
+    "id": 8,
+    "user": "admin"
+  },
+  {
+    "title": "calle rota",
+    "description": "calle rota, es muy profundo",
+    "zone": "Centro",
+    "lat": -7.149635,
+    "lng": -78.508596,
+    "severity": "critico",
+    "category": "otro",
+    "created_at": "2026-10-14T16:58:20.317957+00:00",
+    "id": 9,
+    "user": "admin"
+  }
+]
