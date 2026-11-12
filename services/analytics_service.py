@@ -1,18 +1,4 @@
-"""
-================================================================================
-MÓDULO: services/analytics_service.py
-PRINCIPIO SOLID: Single Responsibility (SRP)
-TEMA DEL CURSO: Refactorización y SRP
-================================================================================
-Cálculo de zona crítica, conteos y predicción.
 
-ALGORITMOS APLICADOS
-  - Zona crítica     → moda ponderada por severidad (crítico=3, intermedio=2, bajo=1)
-  - Conteo           → número total de reportes en la zona ganadora
-  - Predicción       → tendencia de los últimos N días extrapolada
-                       (regresión lineal simple)
-================================================================================
-"""
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List
@@ -20,107 +6,117 @@ from typing import Dict, List
 from models.report import Report
 
 
-# Pesos por severidad (afectan el cálculo de zona crítica)
-SEVERITY_WEIGHT = {"bajo": 1, "intermedio": 2, "critico": 3}
+SEVERITY_WEIGHT = {
+    "bajo": 1,
+    "intermedio": 2,
+    "critico": 3,
+}
 
 
 class AnalyticsService:
-    def __init__(self, critical_threshold: int = 5, prediction_window_days: int = 7):
+
+    def __init__(
+        self,
+        critical_threshold: int = 5,
+        prediction_window_days: int = 7
+    ):
         self.critical_threshold = critical_threshold
         self.prediction_window_days = prediction_window_days
 
-    # -----------------------------------------------------------------
-    # API pública
-    # -----------------------------------------------------------------
     def compute_summary(self, reports: List[Report]) -> Dict:
-        total = len(reports)
-        if total == 0:
+        if not reports:
             return self._empty_summary()
 
         zone_name, zone_count, zone_weight = self._critical_zone(reports)
-        prediction = self._predict_trend(reports, zone_name)
 
         return {
-            "total": total,
+            "total": len(reports),
             "criticalZoneName": zone_name,
             "criticalZoneInfo": self._describe_zone(zone_count, zone_weight),
             "criticalZoneCount": zone_count,
-            "criticalZonePrediction": prediction,
+            "criticalZonePrediction": self._predict_trend(reports, zone_name),
         }
 
-    # -----------------------------------------------------------------
-    # Cálculo de la zona crítica (ponderada por severidad)
-    # -----------------------------------------------------------------
     def _critical_zone(self, reports: List[Report]):
-        weighted = defaultdict(int)      # zona → peso acumulado
-        counts   = Counter()             # zona → nº reportes
+        weighted = defaultdict(int)
+        counts = Counter()
 
-        for r in reports:
-            weighted[r.zone] += SEVERITY_WEIGHT.get(r.severity, 1)
-            counts[r.zone]   += 1
+        for report in reports:
+            weight = SEVERITY_WEIGHT.get(report.severity, 1)
+            weighted[report.zone] += weight
+            counts[report.zone] += 1
 
-        # La zona crítica es la de mayor peso (no solo la más frecuente)
         zone_name = max(weighted, key=weighted.get)
+
         return zone_name, counts[zone_name], weighted[zone_name]
 
     def _describe_zone(self, count: int, weight: int) -> str:
         if count >= self.critical_threshold:
             return f"Alta concentración ({count} reportes, peso {weight})"
+
         if count >= 3:
             return f"Concentración media ({count} reportes)"
+
         return f"Actividad leve ({count} reportes)"
 
-    # -----------------------------------------------------------------
-    # Predicción: tendencia lineal simple sobre los últimos N días
-    # -----------------------------------------------------------------
     def _predict_trend(self, reports: List[Report], zone_name: str) -> str:
-        now = datetime.now(timezone.utc)
-        cutoff = now - timedelta(days=self.prediction_window_days * 2)
+        cutoff = datetime.now(timezone.utc) - timedelta(
+            days=self.prediction_window_days * 2
+        )
 
-        # Serie temporal: reportes por día (de la zona crítica)
         daily = defaultdict(int)
-        for r in reports:
-            if r.zone != zone_name:
+
+        for report in reports:
+            if report.zone != zone_name:
                 continue
+
             try:
-                dt = datetime.fromisoformat(r.created_at.replace("Z", "+00:00"))
+                created_at = datetime.fromisoformat(
+                    report.created_at.replace("Z", "+00:00")
+                )
             except (ValueError, AttributeError):
                 continue
-            if dt < cutoff:
-                continue
-            daily[dt.date()] += 1
+
+            if created_at >= cutoff:
+                daily[created_at.date()] += 1
 
         if len(daily) < 2:
-            # Con pocos datos: usamos proporción simple como fallback
-            zone_total = sum(daily.values()) or 1
-            share = (zone_total / len(reports)) * 100
-            return f"{min(round(share), 99)}%"
+            return self._fallback_prediction(daily, reports)
 
-        # Regresión lineal simple: y = a + bx
+        return self._linear_prediction(daily)
+
+    def _fallback_prediction(self, daily: dict, reports: List[Report]) -> str:
+        zone_total = sum(daily.values()) or 1
+        share = (zone_total / len(reports)) * 100
+
+        return f"{min(round(share), 99)}%"
+
+    def _linear_prediction(self, daily: dict) -> str:
         days = sorted(daily.keys())
         xs = list(range(len(days)))
-        ys = [daily[d] for d in days]
+        ys = [daily[day] for day in days]
 
         n = len(xs)
-        sum_x  = sum(xs);               sum_y  = sum(ys)
+        sum_x = sum(xs)
+        sum_y = sum(ys)
         sum_xy = sum(x * y for x, y in zip(xs, ys))
         sum_x2 = sum(x * x for x in xs)
 
-        denom = (n * sum_x2 - sum_x ** 2) or 1
-        slope = (n * sum_xy - sum_x * sum_y) / denom
+        denominator = n * sum_x2 - sum_x ** 2 or 1
+        slope = (n * sum_xy - sum_x * sum_y) / denominator
 
-        # Predicción para el "siguiente día"
         next_x = xs[-1] + 1
         intercept = (sum_y - slope * sum_x) / n
         prediction = max(intercept + slope * next_x, 0)
 
-        # Convertimos a probabilidad (%) con una escala logarítmica suave
-        avg = sum(ys) / n
-        if avg == 0:
+        average = sum(ys) / n
+
+        if average == 0:
             return "0%"
-        ratio = prediction / avg
-        prob = min(round(ratio * 100), 99)
-        return f"{prob}%"
+
+        probability = min(round((prediction / average) * 100), 99)
+
+        return f"{probability}%"
 
     def _empty_summary(self) -> Dict:
         return {
