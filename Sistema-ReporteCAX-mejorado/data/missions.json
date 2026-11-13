@@ -1,0 +1,18 @@
+[
+  {
+    "report_id": 1,
+    "title": "inspeccionar y solucionar",
+    "zone": "Centro",
+    "lat": -6.1638,
+    "lng": -77.5008,
+    "date": "2026-10-15",
+    "participants": [
+      "admin"
+    ],
+    "status": "EN_CURSO",
+    "created_by": "admin",
+    "eco_reward": 40,
+    "created_at": "2026-10-15T17:58:56.718889+00:00",
+    "id": 1
+  }
+]
