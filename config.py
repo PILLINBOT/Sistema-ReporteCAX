@@ -22,6 +22,23 @@ import os
 from datetime import timedelta
 
 
+def _load_dotenv(path: str) -> None:
+    """Carga un archivo .env simple (CLAVE=valor) sin dependencias externas.
+    Las variables ya definidas en el entorno tienen prioridad."""
+    if not os.path.exists(path):
+        return
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+
+
 class Config:
     """Configuración base compartida por todos los entornos."""
 
@@ -69,6 +86,26 @@ class Config:
         "mission_join": int(os.getenv("POINTS_MISSION_JOIN", "15")),
         "mission_complete": int(os.getenv("POINTS_MISSION_COMPLETE", "40")),
     }
+
+    # --- Reporte diario por correo (SMTP) ---
+    # Por defecto Gmail. Para Outlook: smtp.office365.com, puerto 587.
+    SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USER = os.getenv("SMTP_USER", "")          # correo que envía
+    SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "").replace(" ", "")  # contraseña de aplicación
+    REPORT_EMAIL_FROM = os.getenv("REPORT_EMAIL_FROM", "") or SMTP_USER
+    # Destinatarios separados por coma.
+    REPORT_EMAIL_TO = [e.strip() for e in os.getenv("REPORT_EMAIL_TO", "").split(",") if e.strip()]
+    # Si no se indica destinatario, se envía al mismo correo que lo manda.
+    if not REPORT_EMAIL_TO and SMTP_USER:
+        REPORT_EMAIL_TO = [SMTP_USER]
+    # Hora local (HH:MM) a la que se envía el resumen del día.
+    DAILY_REPORT_TIME = os.getenv("DAILY_REPORT_TIME", "21:00")
+    # Desfase horario respecto a UTC (Perú: -5, sin horario de verano).
+    DAILY_REPORT_UTC_OFFSET = int(os.getenv("DAILY_REPORT_UTC_OFFSET", "-5"))
+    # "1" activa el envío automático mientras el servidor está encendido.
+    DAILY_REPORT_ENABLED = os.getenv("DAILY_REPORT_ENABLED", "1") == "1"
+    DAILY_REPORT_STATE_FILE = os.path.join(DATA_DIR, "daily_report_state.json")
 
 
 class DevelopmentConfig(Config):

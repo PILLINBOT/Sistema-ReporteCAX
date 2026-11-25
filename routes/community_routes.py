@@ -178,3 +178,31 @@ def api_complete_mission(mission_id: int):
         return jsonify({"error": str(exc)}), 400
 
     return jsonify({"mission": mission.to_dict()})
+
+
+# --- Reporte diario por correo (solo admin) ----------------------------------
+def _require_admin():
+    user = _current_user()
+    if user is None or user.role != "admin":
+        return jsonify({"error": "forbidden"}), 403
+    return None
+
+
+@community_bp.route("/api/daily-report", methods=["GET"])
+def api_daily_report_preview():
+    guard = _require_admin()
+    if guard:
+        return guard
+    return jsonify({"message": _svc("daily_report_service").build_message()})
+
+
+@community_bp.route("/api/daily-report/send", methods=["POST"])
+def api_daily_report_send():
+    guard = _require_admin()
+    if guard:
+        return guard
+    try:
+        text = _svc("daily_report_service").send()
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 502
+    return jsonify({"sent": True, "message": text})

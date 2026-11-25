@@ -35,6 +35,8 @@ from services.image_classifier import get_default_classifier
 from services.storage_service import LocalStorageService
 from services.gamification_service import GamificationService
 from services.community_service import CommunityService
+from services.email_service import EmailNotifier
+from services.daily_report_service import DailyReportService, DailyReportScheduler
 
 # --- Blueprints (rutas) ----------------------------------------------------
 from routes.auth_routes import auth_bp
@@ -138,6 +140,23 @@ def create_app(env: str | None = None) -> Flask:
     app.extensions["gamification_service"] = gamification
     app.extensions["community_service"] = community_service
 
+    # --- Reporte diario por correo -----------------------------------------
+    daily_report = DailyReportService(
+        report_repo=report_repo,
+        mission_repo=mission_repo,
+        user_repo=user_repo,
+        notifier=EmailNotifier(
+            host=app.config["SMTP_HOST"],
+            port=app.config["SMTP_PORT"],
+            user=app.config["SMTP_USER"],
+            password=app.config["SMTP_PASSWORD"],
+            sender=app.config["REPORT_EMAIL_FROM"],
+            recipients=app.config["REPORT_EMAIL_TO"],
+        ),
+        utc_offset_hours=app.config["DAILY_REPORT_UTC_OFFSET"],
+    )
+    app.extensions["daily_report_service"] = daily_report
+
     # ------------------------------------------------------------------------
     # 🧱 REGISTRO DE BLUEPRINTS — PRINCIPIO ABIERTO/CERRADO (OCP)
     # Para añadir un nuevo módulo (ej. /admin, /api/v2) NO modificamos este
@@ -186,4 +205,18 @@ if __name__ == "__main__":
     # Config vía variables de entorno (Gestión de configuración).
     host = os.getenv("HOST", "127.0.0.1")
     port = int(os.getenv("PORT", "5000"))
+
+    # Envío automático del reporte diario por correo. Con debug=True Flask
+    # arranca 2 procesos (reloader): solo lo iniciamos en el proceso "real".
+    if app.config["DAILY_REPORT_ENABLED"] and (
+        not app.config["DEBUG"] or os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+    ):
+        DailyReportScheduler(
+            app.extensions["daily_report_service"],
+            send_at=app.config["DAILY_REPORT_TIME"],
+            state_file=app.config["DAILY_REPORT_STATE_FILE"],
+        ).start()
+        print(f"[correo] Reporte diario programado a las {app.config['DAILY_REPORT_TIME']} "
+              f"→ {', '.join(app.config['REPORT_EMAIL_TO']) or '(sin destinatario)'}")
+
     app.run(host=host, port=port, debug=app.config["DEBUG"])

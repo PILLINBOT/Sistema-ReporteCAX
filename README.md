@@ -212,3 +212,26 @@ ReporteCAX/
 ├── data/                   # Persistencia JSON (se genera)
 └── version_antigua/        # Versión monolítica (para comparar)
 ```
+
+---
+
+## Reporte diario por correo
+
+Cada día, a las **21:00 (hora de Perú)**, el servidor envía por correo un
+resumen con los reportes del día (total, estado, tipo, severidad, zona con más
+reportes, el más votado y los críticos sin resolver) y el **equipo ganador del
+día**: la jornada de limpieza más avanzada y con más participantes, con sus
+integrantes ordenados por eco-puntos.
+
+La configuración está en el archivo `.env` (ver `.env.example`):
+`SMTP_USER`, `SMTP_PASSWORD`, `REPORT_EMAIL_TO` y, opcionalmente,
+`SMTP_HOST`, `SMTP_PORT`, `DAILY_REPORT_TIME`, `DAILY_REPORT_ENABLED`.
+
+```powershell
+.venv\Scripts\python.exe enviar_reporte.py --dry-run   # solo muestra el reporte
+.venv\Scripts\python.exe enviar_reporte.py             # lo envía ahora
+```
+
+Un `admin` también puede usar `GET /api/daily-report` (vista previa) y
+`POST /api/daily-report/send` (enviar ahora). La última fecha enviada se guarda
+en `data/daily_report_state.json` para no enviar dos veces el mismo día.

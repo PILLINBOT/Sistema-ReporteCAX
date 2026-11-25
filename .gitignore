@@ -1,0 +1,10 @@
+# Secretos y entorno local
+.env
+.venv/
+
+# Estado local del reporte diario
+data/daily_report_state.json
+
+# Python
+__pycache__/
+*.pyc
